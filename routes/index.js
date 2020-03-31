@@ -21,7 +21,7 @@ router.get('/books', (req, res, next) => {
     .catch(error => console.log(error));
 });
 
-// book detail route
+// book details route
 
 router.get('/book/:bookId', (req, res) => {
   const {
@@ -50,8 +50,62 @@ router.get('/book-add', (req, res) => {
 // POST add book
 
 router.post('/book-add', (req, res) => {
-  console.log(req.body);
-  res.redirect('/books');
+  console.log('body: ', req.body);
+
+  const {
+    title,
+    author,
+    description,
+    rating
+  } = req.body;
+
+  // using new keyword by instance
+
+  // const newBook = new Book({
+  //   title,
+  //   author,
+  //   description,
+  //   rating
+  // });
+
+  // newBook.save()
+  //   .then(response => {
+  //     console.log(response);
+  //     res.redirect('/books');
+  //   })
+  //   .catch(error => console.log(error));
+
+  // using create method of Model
+
+  Book.create({
+      title,
+      author,
+      description,
+      rating
+    })
+    .then(response => {
+      console.log(response);
+      res.redirect('/books');
+    })
+    .catch(error => console.log(error));
+});
+
+// book edit
+// GET form
+
+router.get('/book-edit/:bookId', (req, res) => {
+  const {
+    bookId
+  } = req.params;
+  Book
+    .findById(bookId)
+    .then(book => {
+      console.log(book);
+      res.render('book-edit', {
+        book
+      });
+    })
+    .catch(error => console.log(error));
 });
 
 module.exports = router;
