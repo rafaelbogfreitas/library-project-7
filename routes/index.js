@@ -21,9 +21,24 @@ router.get('/books', (req, res, next) => {
     .catch(error => console.log(error));
 });
 
-// create a new route (/book/id)that receives the book id
-// and show in a view its contents
+// book detail route
 
-// have fun!
+router.get('/book/:bookId', (req, res) => {
+  const {
+    bookId
+  } = req.params;
+
+  Book
+    .find({
+      _id: bookId
+    })
+    .then(book => {
+      console.log(book);
+      res.render('book-details', {
+        book: book[0]
+      });
+    })
+    .catch(error => console.log(error));
+})
 
 module.exports = router;
