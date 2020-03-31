@@ -29,16 +29,29 @@ router.get('/book/:bookId', (req, res) => {
   } = req.params;
 
   Book
-    .find({
-      _id: bookId
-    })
+    .findById(bookId)
     .then(book => {
       console.log(book);
       res.render('book-details', {
-        book: book[0]
+        book
       });
     })
     .catch(error => console.log(error));
+});
+
+
+// book create routes
+// GET form
+
+router.get('/book-add', (req, res) => {
+  res.render('book-add');
 })
+
+// POST add book
+
+router.post('/book-add', (req, res) => {
+  console.log(req.body);
+  res.redirect('/books');
+});
 
 module.exports = router;
