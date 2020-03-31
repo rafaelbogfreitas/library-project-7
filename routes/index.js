@@ -100,12 +100,45 @@ router.get('/book-edit/:bookId', (req, res) => {
   Book
     .findById(bookId)
     .then(book => {
-      console.log(book);
-      res.render('book-edit', {
-        book
-      });
+      // console.log(book);
+      res.render('book-edit', book);
     })
     .catch(error => console.log(error));
 });
+
+// POST edit
+router.post('/book-edit', (req, res) => {
+  const {
+    title,
+    author,
+    description,
+    rating
+  } = req.body;
+
+  const {
+    bookId
+  } = req.query;
+
+  Book.findByIdAndUpdate(bookId, {
+      $set: {
+        title,
+        author,
+        description,
+        rating
+      }
+    }, {
+      new: true
+    })
+    .then(response => {
+      console.log(response);
+      res.redirect(`/book/${bookId}`);
+    })
+    .catch(error => console.log(error));
+});
+
+// implement the delete route and
+// redirect to /books
+
+
 
 module.exports = router;
