@@ -58,32 +58,22 @@ router.post('/book-add', (req, res) => {
     title,
     author,
     description,
-    rating
+    rating,
+    latitude,
+    longitude
   } = req.body;
 
-  // using new keyword by instance
-
-  // const newBook = new Book({
-  //   title,
-  //   author,
-  //   description,
-  //   rating
-  // });
-
-  // newBook.save()
-  //   .then(response => {
-  //     console.log(response);
-  //     res.redirect('/books');
-  //   })
-  //   .catch(error => console.log(error));
-
-  // using create method of Model
+  const location = {
+    type: 'Point',
+    coordinates: [longitude, latitude]
+  }
 
   Book.create({
       title,
       author,
       description,
-      rating
+      rating,
+      location
     })
     .then(response => {
       console.log(response);

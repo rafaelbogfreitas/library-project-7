@@ -7,11 +7,20 @@ const bookSchema = new Schema({
   title: String,
   description: String,
   author: String,
-  rating: Number
+  rating: Number,
+  location: {
+    type: {
+      type: String
+    },
+    coordinates: [Number]
+  }
 }, {
   timestamps: true
 });
 
-const Book = mongoose.model("Book", bookSchema);
+bookSchema.index({
+  location: '2dsphere'
+});
 
+const Book = mongoose.model("Book", bookSchema);
 module.exports = Book;
