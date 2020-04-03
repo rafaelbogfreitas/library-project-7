@@ -10,7 +10,9 @@ router.get('/', (req, res, next) => {
 // books
 router.get('/books', (req, res, next) => {
   Book
-    .find()
+    .find().sort({
+      title: 1
+    })
     .then(books => {
       // console.log(booksFromMongoDB);
       res.render('books', {
@@ -139,6 +141,16 @@ router.post('/book-edit', (req, res) => {
 // implement the delete route and
 // redirect to /books
 
+router.get('/book-delete/:bookId', (req, res) => {
+  const {
+    bookId
+  } = req.params;
+
+  Book.findByIdAndRemove(bookId).then(response => {
+    console.log(response);
+    res.redirect('/books');
+  }).catch(error => console.log(error));
+});
 
 
 module.exports = router;
