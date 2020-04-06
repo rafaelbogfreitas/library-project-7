@@ -7,20 +7,14 @@ router.get('/', (req, res, next) => {
   res.render('index');
 });
 
-// books
-router.get('/books', (req, res, next) => {
-  Book
-    .find().sort({
-      title: 1
-    })
-    .then(books => {
-      // console.log(booksFromMongoDB);
-      res.render('books', {
-        books
-      });
+// vvvvvvvvvvvvvvv protected routes vvvvvvvvvvvvvv
 
-    })
-    .catch(error => console.log(error));
+router.use((req, res, next) => {
+  if (req.session.currentUser) {
+    next(); // go to the route(s) above
+  } else {
+    res.redirect('/login');
+  }
 });
 
 // book details route
@@ -148,6 +142,25 @@ router.get('/book-delete/:bookId', (req, res) => {
     console.log(response);
     res.redirect('/books');
   }).catch(error => console.log(error));
+});
+
+
+
+// books
+router.get('/books', (req, res, next) => {
+  console.log('user in session ---->', req.session)
+  Book
+    .find().sort({
+      title: 1
+    })
+    .then(books => {
+      res.render('books', {
+        books,
+        user: req.session.currentUser
+      });
+
+    })
+    .catch(error => console.log(error));
 });
 
 module.exports = router;

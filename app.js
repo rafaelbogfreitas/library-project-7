@@ -9,6 +9,10 @@ const mongoose = require('mongoose');
 const logger = require('morgan');
 const path = require('path');
 
+// basic auth 
+const session = require("express-session");
+const MongoStore = require("connect-mongo")(session);
+
 
 mongoose
   .connect('mongodb://localhost/library-project-7', {
@@ -34,6 +38,18 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));
 app.use(cookieParser());
+
+// basic auth middleware setup
+app.use(session({
+  secret: "banana",
+  cookie: {
+    maxAge: 60000 * 30 // 30min
+  },
+  store: new MongoStore({
+    mongooseConnection: mongoose.connection,
+    ttl: 24 * 60 * 60 // 1 day
+  })
+}));
 
 // Express View engine setup
 
@@ -61,9 +77,11 @@ app.locals.title = 'Express - Generated with IronGenerator';
 
 
 const index = require('./routes/index');
+const auth = require('./routes/auth');
 const api = require('./routes/api');
-app.use('/', index);
+app.use('/', auth);
 app.use('/api', api);
+app.use('/', index);
 
 
 module.exports = app;

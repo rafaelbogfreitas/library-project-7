@@ -10,7 +10,13 @@
 </head>
 
 <body>
+  {{#unless user}}
+  <span><a href="/login">login</a></span><br>
+  <span><a href="/signup">signup</a></span><br>
+  {{else}}
+  <span><a href="/logout">logout</a></span><br>
   <span><a href="/book-add">new book</a></span><br>
+  {{/unless}}
 
   {{{body}}}
 
