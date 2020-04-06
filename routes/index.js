@@ -104,19 +104,27 @@ router.post('/book-edit', (req, res) => {
     title,
     author,
     description,
-    rating
+    rating,
+    latitude,
+    longitude
   } = req.body;
 
   const {
     bookId
   } = req.query;
 
+  const location = {
+    type: 'Point',
+    coordinates: [longitude, latitude]
+  }
+
   Book.findByIdAndUpdate(bookId, {
       $set: {
         title,
         author,
         description,
-        rating
+        rating,
+        location
       }
     }, {
       new: true
@@ -141,6 +149,5 @@ router.get('/book-delete/:bookId', (req, res) => {
     res.redirect('/books');
   }).catch(error => console.log(error));
 });
-
 
 module.exports = router;

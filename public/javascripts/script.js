@@ -1,33 +1,42 @@
-const casaDoPorco = {
-  lat: -23.5448658,
-  lng: -46.644659
-};
-
-const barOnca = {
-  lat: -23.5465084,
-  lng: -46.6445317
-}
-
-const ironhack = {
-  lat: -23.5617714,
-  lng: -46.6601914
-}
-
-const locations = [casaDoPorco, barOnca, ironhack];
-
 const initMap = () => {
+
+  const ironhack = {
+    lat: -23.5617714,
+    lng: -46.6601914
+  }
+
   const map = new google.maps.Map(document.getElementById('map'), {
     center: ironhack,
-    zoom: 15
+    zoom: 12
   });
 
-  locations.forEach(location => {
-    new google.maps.Marker({
-      position: location,
-      map: map,
-      title: 'Casa do Porco Here!'
-    });
-  });
+  axios.get('http://localhost:3000/api/books')
+    .then(response => {
+      console.log(response.data);
+
+      const books = response.data;
+
+      books.forEach(book => {
+
+        if (book.location) {
+          const [longitude, latitude] = book.location.coordinates
+
+          const latLng = {
+            lat: latitude,
+            lng: longitude
+          }
+
+          new google.maps.Marker({
+            position: latLng,
+            map: map,
+            title: book.title
+          });
+        }
+
+      });
+    })
+    .catch(error => console.log(error));
+
 }
 
 initMap();
