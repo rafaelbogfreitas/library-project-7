@@ -4,6 +4,9 @@ const bcrypt = require('bcrypt');
 const bcryptSalt = 10;
 const User = require('../models/user');
 const Book = require('../models/book');
+// passport
+const passport = require("passport");
+
 
 // Auth Routes
 
@@ -50,53 +53,78 @@ router.get('/login', (req, res, next) => {
   res.render('login-form');
 });
 
-router.post('/login', (req, res, next) => {
-  const {
-    username,
-    password
-  } = req.body;
+// router.post('/login', (req, res, next) => {
+//   const {
+//     username,
+//     password
+//   } = req.body;
 
-  if (username === '' || password === '') {
-    res.render('login-form', {
-      errorMessage: 'please type username and password'
-    });
-    return;
-  }
+//   if (username === '' || password === '') {
+//     res.render('login-form', {
+//       errorMessage: 'please type username and password'
+//     });
+//     return;
+//   }
 
-  User.findOne({
-      username
-    })
-    .then(user => {
+//   User.findOne({
+//       username
+//     })
+//     .then(user => {
 
-      // checking if username exists in database
+//       // checking if username exists in database
 
-      if (!user) {
-        res.render('login-form', {
-          errorMessage: 'invalid username or password'
-        })
-        return;
-      }
+//       if (!user) {
+//         res.render('login-form', {
+//           errorMessage: 'invalid username or password'
+//         })
+//         return;
+//       }
 
-      // since user exits let's check his/her password
-      if (bcrypt.compareSync(password, user.password)) {
-        req.session.currentUser = user;
-        res.redirect('/books');
-      } else {
-        res.render('login-form', {
-          errorMessage: 'invalid password or username'
-        })
-      }
+//       // since user exits let's check his/her password
+//       if (bcrypt.compareSync(password, user.password)) {
+//         req.session.currentUser = user;
+//         res.redirect('/books');
+//       } else {
+//         res.render('login-form', {
+//           errorMessage: 'invalid password or username'
+//         })
+//       }
 
-    })
-    .catch(err => console.log(err));
+//     })
+//     .catch(err => console.log(err));
 
-});
+// });
+
+router.post("/login", passport.authenticate("local", {
+  successRedirect: "/",
+  failureRedirect: "/login",
+  failureFlash: true,
+  passReqToCallback: true,
+}));
 
 
 // LOGOUT route
 
 router.get('/logout', (req, res) => {
-  req.session.destroy((err) => res.redirect('/login'));
+  // basic auth
+  // req.session.destroy((err) => res.redirect('/login'));
+
+  //passport
+  req.logout();
+  res.redirect("/login");
 })
+
+// SOCIAL LOGIN
+
+// one way to slack
+router.get("/auth/slack", passport.authenticate("slack"));
+
+// one way back from slack
+router.get("/auth/slack/callback",
+  passport.authenticate("slack", {
+    successRedirect: "/books",
+    failureRedirect: "/login"
+  })
+);
 
 module.exports = router;

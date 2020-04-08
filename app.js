@@ -13,6 +13,16 @@ const path = require('path');
 const session = require("express-session");
 const MongoStore = require("connect-mongo")(session);
 
+// passport
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+const User = require('./models/user');
+const flash = require("connect-flash");
+const bcrypt = require('bcrypt');
+
+// social login
+const SlackStrategy = require("passport-slack").Strategy;
+
 
 mongoose
   .connect('mongodb://localhost/library-project-7', {
@@ -42,15 +52,98 @@ app.use(cookieParser());
 // basic auth middleware setup
 app.use(session({
   secret: "banana",
-  cookie: {
-    maxAge: 60000 * 30 // 30min
-  },
+  // cookie: {
+  //   maxAge: 15000 // 15sec
+  // },
   store: new MongoStore({
     mongooseConnection: mongoose.connection,
     ttl: 24 * 60 * 60 // 1 day
-  })
+  }),
+  rolling: true,
+  resave: false,
+  saveUninitialized: true
 }));
 
+// passport
+passport.serializeUser((user, cb) => {
+  cb(null, user._id);
+});
+
+passport.deserializeUser((id, cb) => {
+  User.findById(id, (err, user) => {
+    if (err) {
+      return cb(err);
+    }
+    cb(null, user);
+  });
+});
+
+// adding flash to be used with passport
+app.use(flash());
+
+// passport local strategy
+passport.use(new LocalStrategy({
+  passReqToCallback: true
+}, (req, username, password, next) => {
+  User.findOne({
+    username
+  }, (err, user) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      return next(null, false, {
+        message: "Incorrect username"
+      });
+    }
+    if (!bcrypt.compareSync(password, user.password)) {
+      return next(null, false, {
+        message: "Incorrect password"
+      });
+    }
+    // on success
+    return next(null, user);
+  });
+}));
+
+// passport slack strategy
+passport.use(
+  new SlackStrategy({
+      clientID: process.env.SLACK_clientID,
+      clientSecret: process.env.SLACK_clientSecret,
+      callbackURL: "/auth/slack/callback"
+    },
+    (accessToken, refreshToken, profile, done) => {
+      // to see the structure of the data in received response:
+      console.log("Slack account details:", profile);
+
+      User.findOne({
+          slackID: profile.id
+        })
+        .then(user => {
+          // user already exists
+          if (user) {
+            // creates the session successfully
+            done(null, user);
+            return;
+          }
+
+          // otherwise we create him/her
+          User.create({
+              slackID: profile.id
+            })
+            .then(newUser => {
+              done(null, newUser);
+            })
+            .catch(err => done(err)); // closes User.create()
+        })
+        .catch(err => done(err)); // closes User.findOne()
+    }
+  )
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
 // Express View engine setup
 
 app.use(require('node-sass-middleware')({

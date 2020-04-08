@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Book = require('../models/book');
+const ensureLogin = require("connect-ensure-login");
+
 
 /* GET home page */
 router.get('/', (req, res, next) => {
@@ -9,13 +11,13 @@ router.get('/', (req, res, next) => {
 
 // vvvvvvvvvvvvvvv protected routes vvvvvvvvvvvvvv
 
-router.use((req, res, next) => {
-  if (req.session.currentUser) {
-    next(); // go to the route(s) above
-  } else {
-    res.redirect('/login');
-  }
-});
+// router.use((req, res, next) => {
+//   if (req.session.currentUser) {
+//     next(); // go to the route(s) above
+//   } else {
+//     res.redirect('/login');
+//   }
+// });
 
 // book details route
 
@@ -147,7 +149,7 @@ router.get('/book-delete/:bookId', (req, res) => {
 
 
 // books
-router.get('/books', (req, res, next) => {
+router.get('/books', ensureLogin.ensureLoggedIn(), (req, res, next) => {
   console.log('user in session ---->', req.session)
   Book
     .find().sort({
