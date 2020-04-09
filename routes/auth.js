@@ -96,7 +96,7 @@ router.get('/login', (req, res, next) => {
 // });
 
 router.post("/login", passport.authenticate("local", {
-  successRedirect: "/",
+  successRedirect: "/books",
   failureRedirect: "/login",
   failureFlash: true,
   passReqToCallback: true,
@@ -124,6 +124,27 @@ router.get("/auth/slack/callback",
   passport.authenticate("slack", {
     successRedirect: "/books",
     failureRedirect: "/login"
+  })
+);
+
+
+// one way out to google 
+router.get(
+  "/auth/google",
+  passport.authenticate("google", {
+    scope: [
+      "https://www.googleapis.com/auth/userinfo.profile",
+      "https://www.googleapis.com/auth/userinfo.email"
+    ]
+  })
+);
+
+// onde back from google
+router.get(
+  "/auth/google/callback",
+  passport.authenticate("google", {
+    successRedirect: "/books",
+    failureRedirect: "/login" // here you would redirect to the login page using traditional login approach
   })
 );
 

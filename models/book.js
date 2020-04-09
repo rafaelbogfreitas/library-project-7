@@ -13,6 +13,10 @@ const bookSchema = new Schema({
       type: String
     },
     coordinates: [Number]
+  },
+  owner: {
+    type: Schema.Types.ObjectId,
+    ref: 'User'
   }
 }, {
   timestamps: true

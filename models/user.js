@@ -12,7 +12,14 @@ const userSchema = new Schema({
   password: {
     type: String,
     // required: true
-  }
+  },
+  googleID: String,
+  slackID: String,
+  role: {
+    type: String,
+    enum: ['GUEST', 'EDITOR', 'ADMIN'],
+    default: 'GUEST'
+  },
 }, {
   timestamps: true
 });

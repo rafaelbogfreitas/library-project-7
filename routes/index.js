@@ -3,6 +3,22 @@ const router = express.Router();
 const Book = require('../models/book');
 const ensureLogin = require("connect-ensure-login");
 
+// ROLES control
+
+const checkRoles = (role) => {
+  return (req, res, next) => {
+    if (req.isAuthenticated() && req.user.role === role) {
+      return next();
+    } else {
+      req.logout();
+      res.redirect('/login')
+    }
+  }
+}
+
+const checkGuest = checkRoles('GUEST');
+const checkEditor = checkRoles('EDITOR');
+const checkAdmin = checkRoles('ADMIN');
 
 /* GET home page */
 router.get('/', (req, res, next) => {
@@ -41,13 +57,13 @@ router.get('/book/:bookId', (req, res) => {
 // book create routes
 // GET form
 
-router.get('/book-add', (req, res) => {
+router.get('/book-add', ensureLogin.ensureLoggedIn(), (req, res) => {
   res.render('book-add');
 })
 
 // POST add book
 
-router.post('/book-add', (req, res) => {
+router.post('/book-add', ensureLogin.ensureLoggedIn(), (req, res) => {
   console.log('body: ', req.body);
 
   const {
@@ -69,7 +85,8 @@ router.post('/book-add', (req, res) => {
       author,
       description,
       rating,
-      location
+      location,
+      owner: req.user._id
     })
     .then(response => {
       console.log(response);
@@ -81,7 +98,7 @@ router.post('/book-add', (req, res) => {
 // book edit
 // GET form
 
-router.get('/book-edit/:bookId', (req, res) => {
+router.get('/book-edit/:bookId', checkRoles('EDITOR'), (req, res) => {
   const {
     bookId
   } = req.params;
@@ -152,13 +169,24 @@ router.get('/book-delete/:bookId', (req, res) => {
 router.get('/books', ensureLogin.ensureLoggedIn(), (req, res, next) => {
   console.log('user in session ---->', req.session)
   Book
-    .find().sort({
+    .find({
+      owner: req.user._id
+    }).sort({
       title: 1
     })
+    .populate('owner')
     .then(books => {
+      console.log(books);
+
+      const managedBooks = books.map(book => {
+        if (book.owner && book.owner.toString() === req.user._id.toString()) {
+          book.isOwner = true;
+        }
+        return book;
+      });
       res.render('books', {
-        books,
-        user: req.session.currentUser
+        books: managedBooks,
+        user: req.user,
       });
 
     })
