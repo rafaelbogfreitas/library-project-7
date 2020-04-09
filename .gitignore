@@ -6,3 +6,8 @@ npm-debug.log
 
 # Environment Variables should NEVER be published
 .env
+
+# no images on github
+public/uploads
+.DS_Store
+public/.DS_Store

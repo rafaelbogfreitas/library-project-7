@@ -17,7 +17,9 @@ const bookSchema = new Schema({
   owner: {
     type: Schema.Types.ObjectId,
     ref: 'User'
-  }
+  },
+  path: String, // points to the path of the image
+  originalName: String // images original name
 }, {
   timestamps: true
 });

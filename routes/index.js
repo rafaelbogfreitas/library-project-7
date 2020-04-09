@@ -3,6 +3,14 @@ const router = express.Router();
 const Book = require('../models/book');
 const ensureLogin = require("connect-ensure-login");
 
+
+// file upload
+const multer = require('multer');
+const upload = multer({
+  dest: './public/uploads/'
+});
+const uploadCloud = require('../config/cloudinary.js');
+
 // ROLES control
 
 const checkRoles = (role) => {
@@ -63,8 +71,9 @@ router.get('/book-add', ensureLogin.ensureLoggedIn(), (req, res) => {
 
 // POST add book
 
-router.post('/book-add', ensureLogin.ensureLoggedIn(), (req, res) => {
-  console.log('body: ', req.body);
+router.post('/book-add', uploadCloud.single('photo'), ensureLogin.ensureLoggedIn(), (req, res) => {
+  // console.log('body: ', req.body);
+  console.log(req.file);
 
   const {
     title,
@@ -86,7 +95,9 @@ router.post('/book-add', ensureLogin.ensureLoggedIn(), (req, res) => {
       description,
       rating,
       location,
-      owner: req.user._id
+      owner: req.user._id,
+      path: req.file.url,
+      originalName: req.file.originalname
     })
     .then(response => {
       console.log(response);
