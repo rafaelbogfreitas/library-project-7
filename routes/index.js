@@ -180,9 +180,7 @@ router.get('/book-delete/:bookId', (req, res) => {
 router.get('/books', ensureLogin.ensureLoggedIn(), (req, res, next) => {
   console.log('user in session ---->', req.session)
   Book
-    .find({
-      owner: req.user._id
-    }).sort({
+    .find().sort({
       title: 1
     })
     .populate('owner')

@@ -29,22 +29,44 @@ router.post('/signup', (req, res, next) => {
   // res.send(req.body);
   // return;
 
+  const recaptchaResponse = req.body["g-recaptcha-response"];
+
   // in case captcha is not clicked
-  if (!req.body["g-recaptcha-response"]) {
+  if (!recaptchaResponse) {
     res.render('signup-form', {
       errorMessage: 'please use captcha'
     });
+    return;
   }
 
   // forming verification url for axios request
   const verificationKey = process.env.RECAPTCHA_KEY;
-  const recaptchaResponse = req.body["g-recaptcha-response"];
-  const verificationURL = `https://www.google.com/recaptcha/api/siteverify?secret=${verificationKey}&response=${recaptchaResponse}&remoteip=${req.connection.remoteAddress}`;
+  // const verificationURL = `https://www.google.com/recaptcha/api/siteverify?secret=${verificationKey}&response=${recaptchaResponse}&remoteip=${req.connection.remoteAddress}`;
+  const verificationURL = `https://www.google.com/recaptcha/api/siteverify`;
 
-  axios.get(verificationURL)
+  const postData = {
+    secret: verificationKey,
+    response: recaptchaResponse
+  }
+  // console.log(req.body, postData)
+  axios({
+      method: 'post',
+      url: verificationURL,
+      data: postData,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Access-Control-Allow-Origin': '*'
+      }
+    })
     .then(response => {
 
-      if (response.data.success) {
+      console.log(response)
+
+      const {
+        success
+      } = response.data;
+
+      if (success) {
         const {
           username,
           email,
@@ -91,16 +113,13 @@ router.post('/signup', (req, res, next) => {
             errorMessage: err.errmsg
           }));
       } else {
-        res.status(400).render('signup-form', {
+        console.log(response.data)
+        res.status(500).render('signup-form', {
           errorMessage: 'captcha not validated'
         })
       }
     })
-    .catch(error => console.log(error))
-
-
-
-
+    .catch(error => console.log(error));
 });
 
 // LOGIN routes
