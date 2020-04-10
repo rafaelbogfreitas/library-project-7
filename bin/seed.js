@@ -1,9 +1,9 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const Book = require('../models/book');
 const Author = require('../models/author');
 
-const dbtitle = 'library-project-7';
-mongoose.connect(`mongodb://localhost/${dbtitle}`);
+mongoose.connect(process.env.MONGODB_URI);
 Book.collection.drop();
 Author.collection.drop();
 
