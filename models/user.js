@@ -20,6 +20,7 @@ const userSchema = new Schema({
     enum: ['GUEST', 'EDITOR', 'ADMIN'],
     default: 'GUEST'
   },
+  email: String
 }, {
   timestamps: true
 });

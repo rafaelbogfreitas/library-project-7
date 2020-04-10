@@ -2,12 +2,17 @@
   <label for="username">Username</label><br>
   <input type="text" name="username" placeholder="Your username" required>
 
+  <label for="email">email</label><br>
+  <input type="text" name="email" placeholder="Your email" required>
+
   <label for="password">Password</label><br>
   <input type="password" name="password" placeholder="********" required>
+
   {{#if errorMessage}}
   <div class="error-message">
     {{errorMessage}}
   </div>
   {{/if}}
+  <div class="g-recaptcha" data-sitekey="6LdKUegUAAAAAFqhx0Rzp0LQjXZzw48kP8y5yHiy"></div>
   <button type="submit">Create account</button>
 </form>

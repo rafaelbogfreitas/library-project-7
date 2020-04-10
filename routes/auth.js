@@ -1,12 +1,22 @@
 const express = require('express');
 const router = express.Router();
+const axios = require('axios');
 const bcrypt = require('bcrypt');
 const bcryptSalt = 10;
 const User = require('../models/user');
 const Book = require('../models/book');
 // passport
 const passport = require("passport");
-
+// nodemailer
+const nodemailer = require('nodemailer');
+const transport = nodemailer.createTransport({
+  host: "smtp.mailtrap.io",
+  port: 2525,
+  auth: {
+    user: process.env.MAILTRAP_USER,
+    pass: process.env.MAILTRAP_PASS
+  }
+});
 
 // Auth Routes
 
@@ -16,34 +26,80 @@ router.get('/signup', (req, res, next) => {
 
 // signup POST route
 router.post('/signup', (req, res, next) => {
-  const {
-    username,
-    password
-  } = req.body;
+  // res.send(req.body);
+  // return;
 
-  const salt = bcrypt.genSaltSync(bcryptSalt);
-  const hashPass = bcrypt.hashSync(password, salt);
-
-  if (username === '' || password === '') {
-    console.log(username, password)
+  // in case captcha is not clicked
+  if (!req.body["g-recaptcha-response"]) {
     res.render('signup-form', {
-      errorMessage: 'please type username and password;'
+      errorMessage: 'please use captcha'
     });
-    return;
   }
 
-  User.create({
-      username,
-      password: hashPass
-    }).then(user => {
-      console.log(user);
-      res.redirect('/login');
-    })
-    .catch(err => res.status(400).render('signup-form', {
-      errorMessage: err.errmsg
-    }));
+  // forming verification url for axios request
+  const verificationKey = process.env.RECAPTCHA_KEY;
+  const recaptchaResponse = req.body["g-recaptcha-response"];
+  const verificationURL = `https://www.google.com/recaptcha/api/siteverify?secret=${verificationKey}&response=${recaptchaResponse}&remoteip=${req.connection.remoteAddress}`;
 
-  // .catch(err => next(err));
+  axios.get(verificationURL)
+    .then(response => {
+
+      if (response.data.success) {
+        const {
+          username,
+          email,
+          password,
+        } = req.body;
+
+        const salt = bcrypt.genSaltSync(bcryptSalt);
+        const hashPass = bcrypt.hashSync(password, salt);
+
+        if (username === '' || password === '') {
+          console.log(username, password)
+          res.render('signup-form', {
+            errorMessage: 'please type username and password;'
+          });
+          return;
+        }
+
+        User.create({
+            username,
+            email,
+            password: hashPass
+          }).then(user => {
+            console.log(user);
+            // firing the email
+            transport.sendMail({
+                from: '"Library Project App" <noreply@ironhack.com>',
+                to: user.email,
+                subject: 'Welcome to LPApp',
+                text: 'Welcome Message',
+                html: '<b>Welcome Message</b>'
+              })
+              .then(info => {
+                console.log(info);
+                res.redirect('/login');
+              })
+              .catch(error => {
+                console.log(error)
+                res.render('signup-form', {
+                  errorMessage: error
+                })
+              });
+          })
+          .catch(err => res.status(400).render('signup-form', {
+            errorMessage: err.errmsg
+          }));
+      } else {
+        res.status(400).render('signup-form', {
+          errorMessage: 'captcha not validated'
+        })
+      }
+    })
+    .catch(error => console.log(error))
+
+
+
 
 });
 
