@@ -25,7 +25,7 @@ const SlackStrategy = require("passport-slack").Strategy;
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 
 mongoose
-  .connect('mongodb://localhost/library-project-7', {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true
   })
@@ -107,73 +107,73 @@ passport.use(new LocalStrategy({
 }));
 
 // passport slack strategy
-passport.use(
-  new SlackStrategy({
-      clientID: process.env.SLACK_clientID,
-      clientSecret: process.env.SLACK_clientSecret,
-      callbackURL: "/auth/slack/callback"
-    },
-    (accessToken, refreshToken, profile, done) => {
-      // to see the structure of the data in received response:
-      console.log("Slack account details:", profile);
+// passport.use(
+//   new SlackStrategy({
+//       clientID: process.env.SLACK_clientID,
+//       clientSecret: process.env.SLACK_clientSecret,
+//       callbackURL: "/auth/slack/callback"
+//     },
+//     (accessToken, refreshToken, profile, done) => {
+//       // to see the structure of the data in received response:
+//       console.log("Slack account details:", profile);
 
-      User.findOne({
-          slackID: profile.id
-        })
-        .then(user => {
-          // user already exists
-          if (user) {
-            // creates the session successfully
-            done(null, user);
-            return;
-          }
+//       User.findOne({
+//           slackID: profile.id
+//         })
+//         .then(user => {
+//           // user already exists
+//           if (user) {
+//             // creates the session successfully
+//             done(null, user);
+//             return;
+//           }
 
-          // otherwise we create him/her
-          User.create({
-              slackID: profile.id
-            })
-            .then(newUser => {
-              done(null, newUser);
-            })
-            .catch(err => done(err)); // closes User.create()
-        })
-        .catch(err => done(err)); // closes User.findOne()
-    }
-  )
-);
+//           // otherwise we create him/her
+//           User.create({
+//               slackID: profile.id
+//             })
+//             .then(newUser => {
+//               done(null, newUser);
+//             })
+//             .catch(err => done(err)); // closes User.create()
+//         })
+//         .catch(err => done(err)); // closes User.findOne()
+//     }
+//   )
+// );
 
-passport.use(
-  new GoogleStrategy({
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: "/auth/google/callback"
-    },
-    (accessToken, refreshToken, profile, done) => {
-      // to see the structure of the data in received response:
-      console.log("Google account details:", profile);
+// passport.use(
+//   new GoogleStrategy({
+//       clientID: process.env.GOOGLE_CLIENT_ID,
+//       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+//       callbackURL: "/auth/google/callback"
+//     },
+//     (accessToken, refreshToken, profile, done) => {
+//       // to see the structure of the data in received response:
+//       console.log("Google account details:", profile);
 
-      User.findOne({
-          googleID: profile.id
-        })
-        .then(user => {
-          if (user) {
-            done(null, user);
-            return;
-          }
+//       User.findOne({
+//           googleID: profile.id
+//         })
+//         .then(user => {
+//           if (user) {
+//             done(null, user);
+//             return;
+//           }
 
-          User.create({
-              username: profile.id,
-              googleID: profile.id
-            })
-            .then(newUser => {
-              done(null, newUser);
-            })
-            .catch(err => done(err)); // closes User.create()
-        })
-        .catch(err => done(err)); // closes User.findOne()
-    }
-  )
-);
+//           User.create({
+//               username: profile.id,
+//               googleID: profile.id
+//             })
+//             .then(newUser => {
+//               done(null, newUser);
+//             })
+//             .catch(err => done(err)); // closes User.create()
+//         })
+//         .catch(err => done(err)); // closes User.findOne()
+//     }
+//   )
+// );
 
 app.use(passport.initialize());
 app.use(passport.session());
